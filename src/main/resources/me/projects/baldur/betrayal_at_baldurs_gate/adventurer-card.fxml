@@ -1,29 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Polygon?>
 
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.image.Image?>
-<VBox alignment="CENTER" prefHeight="448.0" prefWidth="515.0" spacing="20.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.projects.baldur.betrayal_at_baldurs_gate.HelloController">
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.projects.baldur.betrayal_at_baldurs_gate.HelloController">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
-    <Pane fx:id="cardContainer" prefHeight="293.0" prefWidth="475.0">
+    <Pane fx:id="cardContainer" maxHeight="100.0" maxWidth="100.0" prefHeight="100.0" prefWidth="100.0">
         <children>
 
-            <Polygon cache="true" cacheHint="QUALITY" fill="DODGERBLUE" layoutX="234.0" layoutY="139.0"
-                     points="-108.39881896972656, -80.00006866455078, -67.599609375, 41.60003662109375,
-                     78.80032348632812, 41.60002517700195, 113.20091247558594, -80.00007629394531, 5.199981689453125,
-                     -166.20001220703125" stroke="BLACK" strokeType="INSIDE" strokeWidth="20.0" >
+            <Polygon cache="true" cacheHint="QUALITY" fill="#2197ff00" layoutX="47.0" layoutY="110.0" points="-108.39881896972656, -80.00006866455078, -67.599609375, 41.60003662109375,                      78.80032348632812, 41.60002517700195, 113.20091247558594, -80.00007629394531, 5.199981689453125,                      -166.20001220703125" scaleX="0.5" scaleY="0.5" scaleZ="0.5" stroke="BLACK" strokeType="INSIDE" strokeWidth="10.0">
 
             </Polygon>
-            <Label fx:id="nameLabel" layoutX="180.0" layoutY="100.0" />
-            <ImageView fx:id="cardImage">
-            </ImageView>
         </children>
     </Pane>
 </VBox>
