@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.Adventurer;
 
@@ -20,17 +21,20 @@ public class HelloApplication extends Application {
         Parent root = fxmlLoader.load(); //initialize() controller method invoked
 
         //define controller for stage/scene
-        //HelloController ctrlr=fxmlLoader.getController();
+        HelloController ctrlr=fxmlLoader.getController();
         //Adventurer adventurer = new Adventurer("Tasha");
         //ctrlr.setAdventurer(adventurer);
 
-        //after data has been prepared, init scene
-        Scene scene = new Scene(root);
+
+
+        //after data has been prepared, init scene and set width/height
+        Scene scene = new Scene(root, 1440.0, 540.0);
 
         //set stage...
         stage.setTitle("Hello!");
         stage.setScene(scene);
         stage.show();
+
     }
 
     public static void main(String[] args) {
