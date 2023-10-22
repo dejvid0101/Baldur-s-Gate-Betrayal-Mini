@@ -33,7 +33,11 @@ public class HelloController {
         }
 
         if (cardImage != null) {
-            cardImage.setImage(new Image("C:\\Users\\David\\OneDrive - Visoko uciliste Algebra\\Desktop\\Betrayal_at_Baldurs_Gate\\src\\main\\resources\\textures\\Lia_Faen_Tlabar.png"));
+            cardImage.setImage(new Image("C:\\Users\\David\\OneDrive - Visoko uciliste Algebra\\Desktop\\Betrayal_at_Baldurs_Gate\\src\\main\\resources\\textures\\Torskar Stonecleaver.png"));
+        }
+
+        if (cardImage != null) {
+            cardContainer.setStyle("-fx-background-image: url('file:///C:/Users/David/OneDrive%20-%20Visoko%20uciliste%20Algebra/Desktop/Betrayal_at_Baldurs_Gate/src/main/resources/textures/Torskar%20Stonecleaver.png');");
         }
     }
 }
