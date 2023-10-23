@@ -1,5 +1,7 @@
 package me.projects.baldur.betrayal_at_baldurs_gate;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -7,11 +9,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Polygon;
+import javafx.util.Duration;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.Adventurer;
 
 public class HelloController {
     @FXML
-    public Label nameLabel;
+    public Label hauntLabel;
 
     @FXML
     public Pane ouijaBoard;
@@ -24,6 +27,8 @@ public class HelloController {
 
     public Adventurer adventurer;
 
+    private ScaleTransition hauntTransition;
+
     public void setAdventurer(Adventurer adventurer) {
 
         this.adventurer=adventurer;
@@ -32,9 +37,13 @@ public class HelloController {
 
     public void initialize() {
 
-        if (nameLabel != null) {
-            Adventurer adventurer = new Adventurer("Tasha");
-            nameLabel.setText(adventurer.getName());
+        if (hauntLabel != null) {
+            // Create animation for haunt labellange
+            hauntTransition = new ScaleTransition(Duration.seconds(0.5), hauntLabel);
+            hauntTransition.setToX(5.0); // Scale width to 2 times its original size
+            hauntTransition.setToY(5.0); // Scale height to half of its original size
+            hauntTransition.setAutoReverse(true);
+            hauntTransition.setCycleCount(ScaleTransition.INDEFINITE);
         }
 
         if (player1Card != null) {
@@ -47,8 +56,6 @@ public class HelloController {
             player2Card.setStyle("-fx-background-image: url('file:///C:/Users/David/OneDrive%20-%20Visoko%20uciliste%20Algebra/Desktop/Betrayal_at_Baldurs_Gate/src/main/resources/textures/Lia_Faen_Tlabar.png');" +
                     " -fx-background-size: 100px");
 
-
-
         }
 
         if (ouijaBoard != null) {
@@ -59,6 +66,6 @@ public class HelloController {
     }
 
     public void changeLayout() {
-        System.out.println("Button clicked... ");
+        hauntTransition.play();
     }
 }

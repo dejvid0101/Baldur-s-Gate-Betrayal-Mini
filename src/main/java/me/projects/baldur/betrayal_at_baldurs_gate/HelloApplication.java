@@ -13,7 +13,7 @@ import java.io.IOException;
 public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("adventurer-card.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("board.fxml"));
 
 
 
@@ -28,7 +28,7 @@ public class HelloApplication extends Application {
 
 
         //after data has been prepared, init scene and set width/height
-        Scene scene = new Scene(root, 1440.0, 540.0);
+        Scene scene = new Scene(root, 1250.0, 540.0);
 
         //set stage...
         stage.setTitle("Hello!");
