@@ -4,13 +4,19 @@ import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import javafx.util.Duration;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.Adventurer;
+
+import java.util.concurrent.*;
 
 public class HelloController {
     @FXML
@@ -28,10 +34,16 @@ public class HelloController {
     public Adventurer adventurer;
 
     private ScaleTransition hauntTransition;
+    @FXML
+    public MenuBar menuBar;
+    @FXML
+    public Polygon leftArrow;
+    @FXML
+    public Polygon rightArrow;
 
     public void setAdventurer(Adventurer adventurer) {
 
-        this.adventurer=adventurer;
+        this.adventurer = adventurer;
 
     }
 
@@ -63,9 +75,31 @@ public class HelloController {
                     "-fx-background-repeat:no-repeat;");
 
         }
-    }
+
+        if (menuBar != null) {
+            menuBar = new MenuBar();
+            menuBar.getMenus().add(new Menu("New game"));
+        }
+        ScheduledExecutorService hauntScheduler = Executors.newScheduledThreadPool(1);
+
+        Runnable task = () -> {
+            // Your task logic here
+            System.out.println("Task executed at: " + System.currentTimeMillis());
+        };
+
+        // Schedule the task to run every 1 second
+        hauntScheduler.scheduleAtFixedRate(task,0,7,TimeUnit.SECONDS);
+
+    };
+
 
     public void changeLayout() {
         hauntTransition.play();
+        leftArrow.setVisible(false);
+        rightArrow.setVisible(false);
     }
-}
+
+    public void moveRight(){
+        player1Card.setLayoutX((player1Card.getLayoutX())+250);
+    }
+        }

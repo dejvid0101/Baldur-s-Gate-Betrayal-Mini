@@ -3,24 +3,42 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Polygon?>
 
+<?import javafx.scene.layout.HBox?>
 <VBox alignment="CENTER" spacing="20.0" style="-fx-background-color:gray" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.projects.baldur.betrayal_at_baldurs_gate.HelloController">
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-    </padding>
+
+    <MenuBar fx:id="menuBar">
+        <VBox.margin>
+            <Insets bottom="80" />
+        </VBox.margin>
+<menus>
+    <Menu text="Game">
+        <items>
+            <MenuItem text="Open" />
+            <MenuItem text="Save" />
+        </items>
+    </Menu>
+</menus>
+    </MenuBar>
+    <HBox spacing="20" maxWidth="200">
+        <Polygon fx:id="leftArrow" stroke="black" strokeWidth="10" points="30, 15, 10, 15, 10, 20, 0, 10, 10, 0, 10, 5, 30, 5" />
+
+        <Polygon onMouseClicked="#moveRight" fx:id="rightArrow" stroke="black" strokeWidth="10" points="0, 5, 20, 5, 20, 0, 30, 10, 20, 20, 20, 15, 0, 15" />
+</HBox>
     <Pane fx:id="ouijaBoard" prefHeight="275">
 <children>
     <Button onMouseClicked="#changeLayout" text="Animate shit" translateY="200.0" />
-
-    <Pane fx:id="player1Card" maxHeight="100.0" maxWidth="100.0" prefHeight="100.0" prefWidth="100.0">
+<Pane layoutX="50.0" layoutY="250.0" minHeight="100" minWidth="100" />
+    <Pane fx:id="player1Card" maxHeight="100.0" maxWidth="100.0" prefHeight="100.0" prefWidth="100.0" translateX="20" translateY="20">
         <children>
 
-            <Polygon cache="true" cacheHint="QUALITY" fill="#2197ff00" layoutX="47.0" layoutY="110.0" points="-108.39881896972656, -80.00006866455078, -67.599609375, 41.60003662109375,
-             78.80032348632812, 41.60002517700195, 113.20091247558594, -80.00007629394531, 5.199981689453125,
-              -166.20001220703125" scaleX="0.5" scaleY="0.5" scaleZ="0.5" stroke="BLACK" strokeType="INSIDE" strokeWidth="10.0">
+            <Polygon cache="true" cacheHint="QUALITY" fill="#2197ff00" layoutX="47.0" layoutY="110.0" points="-108.39881896972656, -80.00006866455078, -67.599609375, 41.60003662109375,              78.80032348632812, 41.60002517700195, 113.20091247558594, -80.00007629394531, 5.199981689453125,               -166.20001220703125" scaleX="0.5" scaleY="0.5" scaleZ="0.5" stroke="BLACK" strokeType="INSIDE" strokeWidth="10.0">
 
             </Polygon>
         </children>
@@ -28,12 +46,14 @@
 
 
 
-    <Pane fx:id="player2Card" maxHeight="100.0" maxWidth="100.0" prefHeight="100.0" prefWidth="100.0" translateX="140.0">
+    <Pane fx:id="player2Card" maxHeight="100.0" maxWidth="100.0" prefHeight="100.0" prefWidth="100.0" translateX="120.0" translateY="120.0">
         <children>
 
             <Polygon cache="true" cacheHint="QUALITY" fill="#2197ff00" layoutX="47.0" layoutY="110.0" points="-108.39881896972656, -80.00006866455078, -67.599609375, 41.60003662109375,                      78.80032348632812, 41.60002517700195, 113.20091247558594, -80.00007629394531, 5.199981689453125,                      -166.20001220703125" scaleX="0.5" scaleY="0.5" scaleZ="0.5" stroke="BLACK" strokeType="INSIDE" strokeWidth="10.0">
 
             </Polygon>
+
+
         </children>
     </Pane>
          <Label fx:id="hauntLabel" alignment="CENTER" layoutX="606.0" layoutY="129.0" scaleX="0.1" scaleY="0.1" text="HAUNT STARTED" textFill="#ccd700" />
