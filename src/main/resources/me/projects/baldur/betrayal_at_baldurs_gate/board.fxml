@@ -52,7 +52,7 @@
     <VBox fx:id="game" alignment="CENTER" prefWidth="1900" visible="false">
         <children>
             <Label fx:id="tilesLabel" text="fefe" />
-            <HBox fx:id="arrowWrapper" maxWidth="200" spacing="20" translateX="40">
+            <HBox maxWidth="200" spacing="20" translateX="40">
                 <Polygon fx:id="leftArrow" points="30, 15, 10, 15, 10, 20, 0, 10, 10, 0, 10, 5, 30, 5" stroke="black" strokeWidth="10" visible="false" />
 
                 <Polygon fx:id="rightArrow" points="0, 5, 20, 5, 20, 0, 30, 10, 20, 20, 20, 15, 0, 15" stroke="black" strokeWidth="10" visible="false" />

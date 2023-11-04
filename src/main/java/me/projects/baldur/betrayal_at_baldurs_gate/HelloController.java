@@ -14,14 +14,16 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Polygon;
 import javafx.util.Duration;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.Adventurer;
+import me.projects.baldur.betrayal_at_baldurs_gate.classes.State;
 
-import java.io.Console;
+import java.io.*;
 import java.util.Random;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class HelloController {
+public class HelloController implements Serializable {
 
+    private State gameState;
     private int tilesCounter = 1;
 
     @FXML
@@ -37,13 +39,7 @@ public class HelloController {
     public Label tilesLabel;
 
     @FXML
-    public HBox arrowWrapper;
-
-    @FXML
     public Pane ouijaBoard;
-
-    @FXML
-    public GridPane ouijaBoardHolder;
 
     @FXML
     public Pane player1Card;
@@ -69,10 +65,6 @@ public class HelloController {
     @FXML
     public Polygon rightArrow;
 
-    private int steps = 1;
-
-    private int currentPlayer = 1;
-
     private boolean isPlayer1AllLeft;
     private boolean isPlayer1AllRight;
     private boolean isPlayer2AllLeft;
@@ -80,16 +72,6 @@ public class HelloController {
 
     @FXML
     private MenuItem newGameBar;
-
-    private int movesSinceStart;
-    @FXML
-    public DialogPane winnerScreen;
-
-    public void setAdventurer(Adventurer adventurer) {
-
-        this.adventurer = adventurer;
-
-    }
 
     public void initialize() {
 
@@ -151,28 +133,42 @@ public class HelloController {
             newGameBar.setOnAction(actionEvent -> startPlayerFlow());
 
         }
+
+        //make sure game state object is not null before attempting to load game
+        gameState=new State(player1Card.getLayoutX(),player2Card.getLayoutX(),1,1,0);
+        loadGame();
     }
 
 
     //moves received player
     public void moveRight(Pane player) {
-        player.setLayoutX((player.getLayoutX()) + 250 * steps);
 
-        if (currentPlayer == 1) currentPlayer = 2;
-        else currentPlayer = 1;
+        //move player on screen
+        player.setLayoutX((gameState.getAnyPlayerCardLayoutX(gameState.getCurrentPlayer())) + 250 * gameState.getSteps());
+
+        //save new player position to state
+        gameState.setAnyPlayerCardLayoutX(gameState.getCurrentPlayer(), player.getLayoutX());
+
+        if (gameState.getCurrentPlayer() == 1) gameState.setCurrentPlayer(2);
+        else gameState.setCurrentPlayer(1);
         startPlayerFlow();
     }
 
-    public void moveLeft(Pane player) {
-        player.setLayoutX((player.getLayoutX()) - 250 * steps);
+    public void moveLeft(Pane player, int playerNr) {
+        //move player on screen
+        player.setLayoutX((gameState.getAnyPlayerCardLayoutX(gameState.getCurrentPlayer())) - 250 * gameState.getSteps());
 
-        if (currentPlayer == 1) currentPlayer = 2;
-        else currentPlayer = 1;
+        //save new player position to state
+        gameState.setAnyPlayerCardLayoutX(gameState.getCurrentPlayer(), player.getLayoutX());
+
+        if (gameState.getCurrentPlayer() == 1) gameState.setCurrentPlayer(2);
+        else gameState.setCurrentPlayer(1);
         startPlayerFlow();
 
     }
 
     public void startPlayerFlow() {
+        saveGame();
         isItHauntTime();
         this.game.setVisible(true);
         this.game.setTranslateY(-250);
@@ -181,15 +177,15 @@ public class HelloController {
         this.leftArrow.setVisible(false);
         this.rightArrow.setVisible(false);
 
-        System.out.println(Double.toString(player1Card.getLayoutX()));
+        System.out.println(Integer.toString(gameState.getCurrentPlayer()));
 
-        if (currentPlayer == 2) {
-            rightArrow.setOnMouseClicked(event -> moveRight((player2Card)));
-            leftArrow.setOnMouseClicked(event -> moveLeft((player2Card)));
+        if (gameState.getCurrentPlayer() == 2) {
+            rightArrow.setOnMouseClicked(event -> moveRight(player2Card));
+            leftArrow.setOnMouseClicked(event -> moveLeft(player2Card,2));
 
         } else {
             rightArrow.setOnMouseClicked(event -> moveRight(player1Card));
-            leftArrow.setOnMouseClicked(event -> moveLeft(player1Card));
+            leftArrow.setOnMouseClicked(event -> moveLeft(player1Card,1));
         }
 
         isPlayer1AllLeft = false;
@@ -201,19 +197,19 @@ public class HelloController {
 
     }
 
+    //if haunt time, start haunt animation and set flag, winner decided here
     private void isItHauntTime() {
-        movesSinceStart++;
-        if (movesSinceStart > 10) {
-
+        gameState.increaseMovesSinceStart();
+        if (gameState.getMovesSinceStart() > 10) {
             hauntTransition.play();
 
-            if (player1Card.getLayoutX() <= 750 && player1Card.getLayoutX() >= 500) {
+            if (gameState.getPlayer1CardLayoutX() <= 750 && gameState.getPlayer1CardLayoutX() >= 500) {
                 hauntLabel.setText("Player 1 wins");
 
                 game.setVisible(false);
                 initialScreen.setVisible(true);
 
-            } else if (player2Card.getLayoutX() <= 750 && player2Card.getLayoutX() >= 500) {
+            } else if (gameState.getPlayer2CardLayoutX() <= 750 && gameState.getPlayer2CardLayoutX() >= 500) {
                 hauntLabel.setText("Player 2 wins");
 
                 game.setVisible(false);
@@ -230,7 +226,7 @@ public class HelloController {
         }
     }
 
-    //starts tile counting animation, stops and generates random tile step...
+    //starts tile counting animation, stops and generates random tile step, renders arrows to move depending on player position...
     public void startTileCounter() {
         tilesLabel.setText(Integer.toString(tilesCounter));
 
@@ -256,7 +252,7 @@ public class HelloController {
 
         Runnable task = () -> {
             timeline.stop();
-            steps = r.nextInt(2) + 1;
+            gameState.setSteps(r.nextInt(2) + 1);
 
             System.out.println("Runnable task");
             tilesTransitionReverse.play();
@@ -264,26 +260,25 @@ public class HelloController {
             Platform.runLater(new Runnable() {
                 @Override
                 public void run() {
-                    tilesLabel.setText((steps == 1) ? "Distance to move: " + Integer.toString(steps) + " tile" : "Distance to move: " + Integer.toString(steps) + " tiles");
-                    System.out.println(steps);
+                    tilesLabel.setText((gameState.getSteps() == 1) ? "Distance to move: " + Integer.toString(gameState.getSteps()) + " tile" : "Distance to move: " + Integer.toString(gameState.getSteps()) + " tiles");
+                    System.out.println(gameState.getSteps());
 
-                    switch (steps) {
+                    switch (gameState.getSteps()) {
                         case 1:
 
-                            isPlayer1AllLeft = player1Card.getLayoutX() < 250;
-                            isPlayer1AllRight = player1Card.getLayoutX() >= 750;
-                            isPlayer2AllLeft = player2Card.getLayoutX() < 250;
-                            isPlayer2AllRight = player2Card.getLayoutX() >= 750;
+                            isPlayer1AllLeft = gameState.getPlayer1CardLayoutX() < 250;
+                            isPlayer1AllRight = gameState.getPlayer1CardLayoutX() >= 750;
+                            isPlayer2AllLeft = gameState.getPlayer2CardLayoutX() < 250;
+                            isPlayer2AllRight = gameState.getPlayer2CardLayoutX() >= 750;
 
                         case 2:
 
-                            isPlayer1AllLeft = player1Card.getLayoutX() < 500;
-                            System.out.println("layout player 1: " + player1Card.getLayoutX());
-                            isPlayer1AllRight = player1Card.getLayoutX() > 500;
-                            isPlayer2AllLeft = player2Card.getLayoutX() < 500;
-                            System.out.println("layout player 2: " + player2Card.getLayoutX());
+                            isPlayer1AllLeft = gameState.getPlayer1CardLayoutX() < 500;
+                            System.out.println("layout player 1: " + gameState.getPlayer1CardLayoutX());
+                            isPlayer1AllRight = gameState.getPlayer1CardLayoutX() > 500;
+                            isPlayer2AllLeft = gameState.getPlayer2CardLayoutX() < 500;
 
-                            isPlayer2AllRight = player2Card.getLayoutX() > 500;
+                            isPlayer2AllRight = gameState.getPlayer2CardLayoutX() > 500;
 
                     }
 
@@ -293,7 +288,7 @@ public class HelloController {
                     System.out.println(isPlayer2AllRight);
 
                     //is any player close to window border? if so, prevent moving in direction of the border depending on the number of steps
-                    switch (currentPlayer) {
+                    switch (gameState.getCurrentPlayer()) {
                         case 1:
                             if (isPlayer1AllLeft && isPlayer1AllRight) {
                                 rightArrow.setVisible(true);
@@ -334,6 +329,44 @@ public class HelloController {
         executor.shutdown();
 
 
+    }
+
+    public void saveGame(){
+        String fileName = "serializedState.dat";
+
+        try (FileOutputStream fileOut = new FileOutputStream(fileName);
+             ObjectOutputStream objectOut = new ObjectOutputStream(fileOut)) {
+
+            System.out.println(gameState);
+
+            // Write the object to the file
+            objectOut.writeObject(gameState);
+
+
+            //ovo radi
+            System.out.println("Object has been serialized.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadGame(){
+        String fileName = "serializedState.dat";
+
+        try (FileInputStream fileIn = new FileInputStream(fileName);
+             ObjectInputStream objectIn = new ObjectInputStream(fileIn)) {
+
+            // Read the object from the file
+            gameState = (State) objectIn.readObject();
+            System.out.println(gameState.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Now you can use the deserialized object
+        if (gameState != null) {
+
+        }
     }
 
 }
