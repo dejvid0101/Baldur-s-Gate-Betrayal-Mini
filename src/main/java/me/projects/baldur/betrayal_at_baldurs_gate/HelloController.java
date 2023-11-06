@@ -14,6 +14,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Polygon;
 import javafx.util.Duration;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.Adventurer;
+import me.projects.baldur.betrayal_at_baldurs_gate.classes.ClassInfoUtilz;
+import me.projects.baldur.betrayal_at_baldurs_gate.classes.FileUtilz;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.State;
 
 import java.io.*;
@@ -135,8 +137,10 @@ public class HelloController implements Serializable {
         }
 
         //make sure game state object is not null before attempting to load game
-        gameState=new State(player1Card.getLayoutX(),player2Card.getLayoutX(),1,1,0);
+        gameState=new State(player1Card.getLayoutX(),player2Card.getLayoutX(),1,1,1);
+
         loadGame();
+        setPlayersToLastPosition();
     }
 
 
@@ -195,6 +199,11 @@ public class HelloController implements Serializable {
 
         startTileCounter();
 
+    }
+
+    private void setPlayersToLastPosition() {
+        this.player1Card.setLayoutX(gameState.getPlayer1CardLayoutX());
+        this.player2Card.setLayoutX(gameState.getPlayer2CardLayoutX());
     }
 
     //if haunt time, start haunt animation and set flag, winner decided here
@@ -332,40 +341,19 @@ public class HelloController implements Serializable {
     }
 
     public void saveGame(){
-        String fileName = "serializedState.dat";
 
-        try (FileOutputStream fileOut = new FileOutputStream(fileName);
-             ObjectOutputStream objectOut = new ObjectOutputStream(fileOut)) {
-
-            System.out.println(gameState);
-
-            // Write the object to the file
-            objectOut.writeObject(gameState);
-
-
-            //ovo radi
-            System.out.println("Object has been serialized.");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+FileUtilz.saveGameToFile(gameState);
     }
 
     public void loadGame(){
-        String fileName = "serializedState.dat";
 
-        try (FileInputStream fileIn = new FileInputStream(fileName);
-             ObjectInputStream objectIn = new ObjectInputStream(fileIn)) {
-
-            // Read the object from the file
-            gameState = (State) objectIn.readObject();
-            System.out.println(gameState.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        gameState=FileUtilz.loadGameFromFile();
 
         // Now you can use the deserialized object
         if (gameState != null) {
 
+            if(gameState.getMovesSinceStart()>=10) gameState.setMovesSinceStart(0);
+            System.out.println(gameState.toString());
         }
     }
 
