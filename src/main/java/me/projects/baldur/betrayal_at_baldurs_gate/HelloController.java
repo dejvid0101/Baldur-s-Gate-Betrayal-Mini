@@ -75,6 +75,12 @@ public class HelloController implements Serializable {
     @FXML
     private MenuItem newGameBar;
 
+    @FXML
+    private MenuItem loadGameBar;
+    @FXML
+
+    private MenuItem saveGameBar;
+
     public void initialize() {
 
         if (hauntLabel != null) {
@@ -132,15 +138,42 @@ public class HelloController implements Serializable {
 
         if (newGameBar != null) {
 
-            newGameBar.setOnAction(actionEvent -> startPlayerFlow());
+            newGameBar.setOnAction(actionEvent -> {
+                refreshState();
+                setPlayersToLastPosition();
+                startPlayerFlow();
+                    }
+            );
+
+        }
+
+        if (loadGameBar != null) {
+
+            loadGameBar.setOnAction(actionEvent -> {
+                loadGame();
+                setPlayersToLastPosition();
+                startPlayerFlow();
+            });
+
+        }
+
+        if (saveGameBar != null) {
+
+            saveGameBar.setOnAction(actionEvent -> {
+                saveGame();
+            });
 
         }
 
         //make sure game state object is not null before attempting to load game
         gameState=new State(player1Card.getLayoutX(),player2Card.getLayoutX(),1,1,1);
 
-        loadGame();
         setPlayersToLastPosition();
+    }
+
+    private void refreshState(){
+        //make sure game state object is not null before attempting to load game
+        gameState=new State(player1Card.getLayoutX(),player2Card.getLayoutX(),1,1,1);
     }
 
 
@@ -172,7 +205,6 @@ public class HelloController implements Serializable {
     }
 
     public void startPlayerFlow() {
-        saveGame();
         isItHauntTime();
         this.game.setVisible(true);
         this.game.setTranslateY(-250);

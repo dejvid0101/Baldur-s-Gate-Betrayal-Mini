@@ -19,9 +19,11 @@
             <Insets bottom="25" />
         </VBox.margin>
         <menus>
-            <Menu  text="Game">
+            <Menu text="Game">
                 <items>
                     <MenuItem fx:id="newGameBar" text="New game" />
+                    <MenuItem fx:id="loadGameBar" text="Load game" />
+                    <MenuItem fx:id="saveGameBar" text="Save game" />
                 </items>
             </Menu>
         </menus>

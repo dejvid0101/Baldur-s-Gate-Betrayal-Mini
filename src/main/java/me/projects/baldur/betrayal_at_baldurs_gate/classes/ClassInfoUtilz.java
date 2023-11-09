@@ -13,7 +13,7 @@ public class ClassInfoUtilz {
 
         System.out.println("Class Name: " + clazz.getName());
 
-        // Print fields (properties)
+        // Print fields
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
             int modifiers = field.getModifiers();
