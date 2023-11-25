@@ -10,8 +10,11 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.Adventurer;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.ClassInfoUtilz;
+import me.projects.baldur.betrayal_at_baldurs_gate.classes.NetworkConfig;
+import me.projects.baldur.betrayal_at_baldurs_gate.classes.Player;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 
 public class HelloApplication extends Application {
     @Override
@@ -37,7 +40,21 @@ public class HelloApplication extends Application {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+
+        String player=args[0];
+
+        if(player.equals(Player.PLAYER1.name())) System.out.println("CALIENTE");
+        if(player.equals(Player.PLAYER2.name())) {
+            System.out.println("SERVERANGE");  listenToRequests();
+        }
+
         launch();
+    }
+
+    private static void listenToRequests() throws IOException {
+        ServerSocket socket=new ServerSocket(NetworkConfig.PLAYER2_PORT);
+
+        System.out.println(socket.getLocalPort());
     }
 }
