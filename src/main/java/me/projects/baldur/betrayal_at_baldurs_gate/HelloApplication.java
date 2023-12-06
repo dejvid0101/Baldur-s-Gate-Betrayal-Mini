@@ -1,7 +1,6 @@
 package me.projects.baldur.betrayal_at_baldurs_gate;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -41,22 +40,38 @@ public class HelloApplication extends Application {
     }
 
     public static void main(String[] args) throws IOException {
+new Thread(Application::launch).start();
 
         String player=args[0];
 
         if(player.equals(Player.PLAYER1.name())){
             System.out.println("CALIENTE");
-            sendToServer();
+            sendToPlayer2();
+            listenToRequests(NetworkConfig.PLAYER1_PORT);
+
         }
         if(player.equals(Player.PLAYER2.name())) {
             System.out.println("SERVERANGE");
-            listenToRequests();
-        }
+            sendToPlayer1();
+            listenToRequests(NetworkConfig.PLAYER2_PORT);
 
-        launch();
+        }
     }
 
-    private static void sendToServer() {
+    public static void sendToPlayer1() {
+        try {
+            Socket player1socket=new Socket("localhost", NetworkConfig.PLAYER1_PORT);
+
+            ObjectOutputStream player1output=new ObjectOutputStream(player1socket.getOutputStream());
+
+            player1output.writeObject(new State(0,0,1,1,14));
+
+        } catch (IOException e) {
+            System.out.println("Unable to connect to player1");
+        }
+    }
+
+    public static void sendToPlayer2() {
         try {
             Socket player2socket=new Socket("localhost", NetworkConfig.PLAYER2_PORT);
 
@@ -65,23 +80,22 @@ public class HelloApplication extends Application {
             player2output.writeObject(new State(0,0,1,1,14));
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Unable to connect to player2");
         }
     }
 
-    private static void listenToRequests() throws IOException {
-        ServerSocket socket=new ServerSocket(NetworkConfig.PLAYER2_PORT);
+    private static void listenToRequests(int port) throws IOException {
+        ServerSocket socket=new ServerSocket(port);
 
         System.out.println(socket.getLocalPort());
-
-        Thread thread=new Thread(() -> { // separate listening and printing received messages
 
             while (true) {
                 try (Socket clientSocket = socket.accept();
                      ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream())) {
 
-                    State receivedData = (State)in.readObject();
-                    System.out.println("Received state from player1: " + receivedData);
+                    State receivedData = (State) in.readObject();
+                    System.out.println("Received state from " + clientSocket.getLocalPort() + receivedData);
+                    HelloController.refreshGame(receivedData);
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -89,8 +103,5 @@ public class HelloApplication extends Application {
                     throw new RuntimeException(e);
                 }
             }
-        });
-
-        thread.start();
     }
 }

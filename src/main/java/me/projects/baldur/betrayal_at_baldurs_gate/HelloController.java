@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class HelloController implements Serializable {
 
-    private State gameState;
+    private static State gameState;
     private int tilesCounter = 1;
 
     @FXML
@@ -161,6 +161,7 @@ public class HelloController implements Serializable {
 
             saveGameBar.setOnAction(actionEvent -> {
                 saveGame();
+                HelloApplication.sendToPlayer1();
             });
 
         }
@@ -387,6 +388,13 @@ FileUtilz.saveGameToFile(gameState);
             if(gameState.getMovesSinceStart()>=10) gameState.setMovesSinceStart(0);
             System.out.println(gameState.toString());
         }
+    }
+
+    public static void refreshGame(State changedState){
+
+        gameState=changedState;
+
+        System.out.println(gameState);
     }
 
 }
