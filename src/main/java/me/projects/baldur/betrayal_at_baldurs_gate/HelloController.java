@@ -13,10 +13,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Polygon;
 import javafx.util.Duration;
-import me.projects.baldur.betrayal_at_baldurs_gate.classes.Adventurer;
-import me.projects.baldur.betrayal_at_baldurs_gate.classes.ClassInfoUtilz;
-import me.projects.baldur.betrayal_at_baldurs_gate.classes.FileUtilz;
-import me.projects.baldur.betrayal_at_baldurs_gate.classes.State;
+import me.projects.baldur.betrayal_at_baldurs_gate.classes.*;
 
 import java.io.*;
 import java.util.Random;
@@ -80,6 +77,10 @@ public class HelloController implements Serializable {
     @FXML
 
     private MenuItem saveGameBar;
+
+    public static Pane player1CardStatic;
+
+    public static Pane player2CardStatic;
 
     public void initialize() {
 
@@ -161,15 +162,32 @@ public class HelloController implements Serializable {
 
             saveGameBar.setOnAction(actionEvent -> {
                 saveGame();
-                HelloApplication.sendToPlayer1();
+
             });
 
         }
+
+        player1CardStatic=player1Card;
+        player2CardStatic=player2Card;
 
         //make sure game state object is not null before attempting to load game
         gameState=new State(player1Card.getLayoutX(),player2Card.getLayoutX(),1,1,1);
 
         setPlayersToLastPosition();
+    }
+
+    private void updateOtherPlayer() {
+        if (HelloApplication.activePlayer.trim().equals(NetworkConfig.PLAYER2))
+        {
+            HelloApplication.sendToPlayer1(gameState);
+            System.out.println(gameState);
+        }
+
+        if (HelloApplication.activePlayer.trim().equals(NetworkConfig.PLAYER1))
+        {
+            HelloApplication.sendToPlayer2(gameState);
+            System.out.println(gameState);
+        }
     }
 
     private void refreshState(){
@@ -187,20 +205,28 @@ public class HelloController implements Serializable {
         //save new player position to state
         gameState.setAnyPlayerCardLayoutX(gameState.getCurrentPlayer(), player.getLayoutX());
 
+        updateOtherPlayer();
+
         if (gameState.getCurrentPlayer() == 1) gameState.setCurrentPlayer(2);
         else gameState.setCurrentPlayer(1);
+
         startPlayerFlow();
     }
 
-    public void moveLeft(Pane player, int playerNr) {
+    public void moveLeft(Pane player) {
         //move player on screen
         player.setLayoutX((gameState.getAnyPlayerCardLayoutX(gameState.getCurrentPlayer())) - 250 * gameState.getSteps());
 
         //save new player position to state
         gameState.setAnyPlayerCardLayoutX(gameState.getCurrentPlayer(), player.getLayoutX());
 
+        updateOtherPlayer();
+
         if (gameState.getCurrentPlayer() == 1) gameState.setCurrentPlayer(2);
         else gameState.setCurrentPlayer(1);
+
+
+
         startPlayerFlow();
 
     }
@@ -218,11 +244,11 @@ public class HelloController implements Serializable {
 
         if (gameState.getCurrentPlayer() == 2) {
             rightArrow.setOnMouseClicked(event -> moveRight(player2Card));
-            leftArrow.setOnMouseClicked(event -> moveLeft(player2Card,2));
+            leftArrow.setOnMouseClicked(event -> moveLeft(player2Card));
 
         } else {
             rightArrow.setOnMouseClicked(event -> moveRight(player1Card));
-            leftArrow.setOnMouseClicked(event -> moveLeft(player1Card,1));
+            leftArrow.setOnMouseClicked(event -> moveLeft(player1Card));
         }
 
         isPlayer1AllLeft = false;
@@ -394,7 +420,12 @@ FileUtilz.saveGameToFile(gameState);
 
         gameState=changedState;
 
-        System.out.println(gameState);
+        player1CardStatic.setLayoutX(gameState.getPlayer1CardLayoutX());
+        player2CardStatic.setLayoutX(gameState.getPlayer2CardLayoutX());
+
+
+
+        System.out.println(gameState.getCurrentPlayer());
     }
 
 }

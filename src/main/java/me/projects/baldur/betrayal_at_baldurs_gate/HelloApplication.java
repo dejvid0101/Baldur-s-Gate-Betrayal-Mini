@@ -1,6 +1,7 @@
 package me.projects.baldur.betrayal_at_baldurs_gate;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -16,6 +17,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class HelloApplication extends Application {
+
+    public static String activePlayer;
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("board.fxml"));
@@ -42,42 +45,41 @@ public class HelloApplication extends Application {
     public static void main(String[] args) throws IOException {
 new Thread(Application::launch).start();
 
-        String player=args[0];
+        activePlayer=args[0];
 
-        if(player.equals(Player.PLAYER1.name())){
+        if(activePlayer.equals(Player.PLAYER1.name())){
             System.out.println("CALIENTE");
-            sendToPlayer2();
             listenToRequests(NetworkConfig.PLAYER1_PORT);
 
         }
-        if(player.equals(Player.PLAYER2.name())) {
+        if(activePlayer.equals(Player.PLAYER2.name())) {
             System.out.println("SERVERANGE");
-            sendToPlayer1();
             listenToRequests(NetworkConfig.PLAYER2_PORT);
 
         }
     }
 
-    public static void sendToPlayer1() {
+    public static void sendToPlayer1(State player2state) {
         try {
             Socket player1socket=new Socket("localhost", NetworkConfig.PLAYER1_PORT);
 
             ObjectOutputStream player1output=new ObjectOutputStream(player1socket.getOutputStream());
 
-            player1output.writeObject(new State(0,0,1,1,14));
+            player1output.writeObject(player2state);
 
         } catch (IOException e) {
             System.out.println("Unable to connect to player1");
         }
     }
 
-    public static void sendToPlayer2() {
+
+    public static void sendToPlayer2(State player1state) {
         try {
             Socket player2socket=new Socket("localhost", NetworkConfig.PLAYER2_PORT);
 
             ObjectOutputStream player2output=new ObjectOutputStream(player2socket.getOutputStream());
 
-            player2output.writeObject(new State(0,0,1,1,14));
+            player2output.writeObject(player1state);
 
         } catch (IOException e) {
             System.out.println("Unable to connect to player2");
@@ -95,7 +97,7 @@ new Thread(Application::launch).start();
 
                     State receivedData = (State) in.readObject();
                     System.out.println("Received state from " + clientSocket.getLocalPort() + receivedData);
-                    HelloController.refreshGame(receivedData);
+                    Platform.runLater(() -> HelloController.refreshGame(receivedData));
 
                 } catch (IOException e) {
                     e.printStackTrace();
