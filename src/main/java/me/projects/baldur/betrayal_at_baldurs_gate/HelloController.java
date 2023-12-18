@@ -13,9 +13,15 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Polygon;
 import javafx.util.Duration;
+import me.projects.baldur.betrayal_at_baldurs_gate.InGameChat.InGameChatService;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.*;
 
 import java.io.*;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class HelloController implements Serializable {
 
     private static State gameState;
-    private int tilesCounter = 1;
+    public static InGameChatService msgService;
+    private static int tilesCounter = 1;
 
     @FXML
     public VBox game;
@@ -54,20 +61,20 @@ public class HelloController implements Serializable {
 
     public Adventurer adventurer;
 
-    private ScaleTransition hauntTransition;
+    private static ScaleTransition hauntTransition;
 
-    private ScaleTransition tilesTransition;
+    private static ScaleTransition tilesTransition;
 
-    private ScaleTransition tilesTransitionReverse;
+    private static ScaleTransition tilesTransitionReverse;
     @FXML
     public Polygon leftArrow;
     @FXML
     public Polygon rightArrow;
 
-    private boolean isPlayer1AllLeft;
-    private boolean isPlayer1AllRight;
-    private boolean isPlayer2AllLeft;
-    private boolean isPlayer2AllRight;
+    private static boolean isPlayer1AllLeft;
+    private static boolean isPlayer1AllRight;
+    private static boolean isPlayer2AllLeft;
+    private static boolean isPlayer2AllRight;
 
     @FXML
     private MenuItem newGameBar;
@@ -82,7 +89,25 @@ public class HelloController implements Serializable {
 
     public static Pane player2CardStatic;
 
-    public void initialize() {
+    public static Label tilesLabelStatic;
+
+    public static Label hauntLabelStatic;
+
+    public static Polygon leftArrowStatic;
+    public static Polygon rightArrowStatic;
+
+    public static VBox gameStatic;
+
+    public static VBox initialScreenStatic;
+
+    public TextArea chatArea;
+    public TextField msgField;
+
+    public Button btnSend;
+
+    public void initialize() throws RemoteException {
+
+        connectToChatService();
 
         if (hauntLabel != null) {
             // Create animation for haunt labellange
@@ -143,6 +168,7 @@ public class HelloController implements Serializable {
                 refreshState();
                 setPlayersToLastPosition();
                 startPlayerFlow();
+                updateOtherPlayer();
                     }
             );
 
@@ -154,6 +180,12 @@ public class HelloController implements Serializable {
                 loadGame();
                 setPlayersToLastPosition();
                 startPlayerFlow();
+                updateOtherPlayer();
+                try {
+                    chatListener();
+                } catch (RemoteException e) {
+                    throw new RuntimeException(e);
+                }
             });
 
         }
@@ -167,16 +199,53 @@ public class HelloController implements Serializable {
 
         }
 
+        if (btnSend != null) {
+
+            btnSend.setOnAction(actionEvent -> {
+                try {
+                    sendMsg();
+                } catch (RemoteException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+        }
+
         player1CardStatic=player1Card;
         player2CardStatic=player2Card;
+        leftArrowStatic=leftArrow;
+        rightArrowStatic=rightArrow;
+        tilesLabelStatic=tilesLabel;
+        hauntLabelStatic=hauntLabel;
+        initialScreenStatic=initialScreen;
+        gameStatic=game;
 
         //make sure game state object is not null before attempting to load game
         gameState=new State(player1Card.getLayoutX(),player2Card.getLayoutX(),1,1,1);
 
         setPlayersToLastPosition();
+
+        Platform.runLater(()-> {
+            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+            // Define the task to be executed periodically
+            Runnable task = () -> {
+                try {
+                chatListener();
+            } catch (RemoteException e) {
+                throw new RuntimeException(e);
+            }
+            };
+
+            // Schedule the task to run every 1 second
+            scheduler.scheduleAtFixedRate(task, 0, 1, TimeUnit.SECONDS);
+
+            }
+
+        );
     }
 
-    private void updateOtherPlayer() {
+    private static void updateOtherPlayer() {
         if (HelloApplication.activePlayer.trim().equals(NetworkConfig.PLAYER2))
         {
             HelloApplication.sendToPlayer1(gameState);
@@ -192,12 +261,12 @@ public class HelloController implements Serializable {
 
     private void refreshState(){
         //make sure game state object is not null before attempting to load game
-        gameState=new State(player1Card.getLayoutX(),player2Card.getLayoutX(),1,1,1);
+        gameState=new State(0,0,1,1,1);
     }
 
 
     //moves received player
-    public void moveRight(Pane player) {
+    public static void moveRight(Pane player) {
 
         //move player on screen
         player.setLayoutX((gameState.getAnyPlayerCardLayoutX(gameState.getCurrentPlayer())) + 250 * gameState.getSteps());
@@ -205,50 +274,64 @@ public class HelloController implements Serializable {
         //save new player position to state
         gameState.setAnyPlayerCardLayoutX(gameState.getCurrentPlayer(), player.getLayoutX());
 
-        updateOtherPlayer();
-
         if (gameState.getCurrentPlayer() == 1) gameState.setCurrentPlayer(2);
         else gameState.setCurrentPlayer(1);
+
+        updateOtherPlayer();
 
         startPlayerFlow();
     }
 
-    public void moveLeft(Pane player) {
+    public static void moveLeft(Pane player) {
+
+
         //move player on screen
         player.setLayoutX((gameState.getAnyPlayerCardLayoutX(gameState.getCurrentPlayer())) - 250 * gameState.getSteps());
 
         //save new player position to state
         gameState.setAnyPlayerCardLayoutX(gameState.getCurrentPlayer(), player.getLayoutX());
 
-        updateOtherPlayer();
 
         if (gameState.getCurrentPlayer() == 1) gameState.setCurrentPlayer(2);
         else gameState.setCurrentPlayer(1);
-
-
+        updateOtherPlayer();
 
         startPlayerFlow();
 
     }
 
-    public void startPlayerFlow() {
-        isItHauntTime();
-        this.game.setVisible(true);
-        this.game.setTranslateY(-250);
-        this.initialScreen.setVisible(false);
+    public static void startPlayerFlow() {
+        if(isItHauntTime()) return;
+if(HelloApplication.activePlayer.equals(NetworkConfig.PLAYER1)) if(gameState.getCurrentPlayer()==2) {
+    leftArrowStatic.setVisible(false);
+    rightArrowStatic.setVisible(false);
+    return;
+}
 
-        this.leftArrow.setVisible(false);
-        this.rightArrow.setVisible(false);
+        if(HelloApplication.activePlayer.equals(NetworkConfig.PLAYER2)) if(gameState.getCurrentPlayer()==1) {
+            leftArrowStatic.setVisible(false);
+            rightArrowStatic.setVisible(false);
+            return;
+        }
+
+        System.err.println("!isIt");
+
+        gameStatic.setVisible(true);
+        gameStatic.setTranslateY(-250);
+        initialScreenStatic.setVisible(false);
+
+        leftArrowStatic.setVisible(false);
+        rightArrowStatic.setVisible(false);
 
         System.out.println(Integer.toString(gameState.getCurrentPlayer()));
 
         if (gameState.getCurrentPlayer() == 2) {
-            rightArrow.setOnMouseClicked(event -> moveRight(player2Card));
-            leftArrow.setOnMouseClicked(event -> moveLeft(player2Card));
+            rightArrowStatic.setOnMouseClicked(event -> moveRight(player2CardStatic));
+            leftArrowStatic.setOnMouseClicked(event -> moveLeft(player2CardStatic));
 
         } else {
-            rightArrow.setOnMouseClicked(event -> moveRight(player1Card));
-            leftArrow.setOnMouseClicked(event -> moveLeft(player1Card));
+            rightArrowStatic.setOnMouseClicked(event -> moveRight(player1CardStatic));
+            leftArrowStatic.setOnMouseClicked(event -> moveLeft(player1CardStatic));
         }
 
         isPlayer1AllLeft = false;
@@ -266,37 +349,55 @@ public class HelloController implements Serializable {
     }
 
     //if haunt time, start haunt animation and set flag, winner decided here
-    private void isItHauntTime() {
+    public static boolean isItHauntTime() {
+
+
         gameState.increaseMovesSinceStart();
+
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+        Runnable task = () -> {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    // Code to be executed after the delay
+                    gameStatic.setVisible(false);
+                    initialScreenStatic.setVisible(true);
+
+                }
+            });
+        };
+
         if (gameState.getMovesSinceStart() > 10) {
             hauntTransition.play();
 
             if (gameState.getPlayer1CardLayoutX() <= 750 && gameState.getPlayer1CardLayoutX() >= 500) {
-                hauntLabel.setText("Player 1 wins");
+                hauntLabelStatic.setText("Player 1 wins");
 
-                game.setVisible(false);
-                initialScreen.setVisible(true);
-
-            } else if (gameState.getPlayer2CardLayoutX() <= 750 && gameState.getPlayer2CardLayoutX() >= 500) {
-                hauntLabel.setText("Player 2 wins");
-
-                game.setVisible(false);
-                initialScreen.setVisible(true);
-
-            } else {
-                hauntLabel.setText("It's a draw");
-
-                game.setVisible(false);
-                initialScreen.setVisible(true);
-
+                int delayInSeconds = 5;
+                executor.schedule(task, delayInSeconds, TimeUnit.SECONDS);
             }
 
+            else if (gameState.getPlayer2CardLayoutX() <= 750 && gameState.getPlayer2CardLayoutX() >= 500) {
+            hauntLabelStatic.setText("Player 2 wins");
+
+                int delayInSeconds = 5;
+                executor.schedule(task, delayInSeconds, TimeUnit.SECONDS);
+
+        } else {
+            hauntLabelStatic.setText("It's a draw");
+
+                int delayInSeconds = 5;
+                executor.schedule(task, delayInSeconds, TimeUnit.SECONDS);
         }
-    }
+    return true;
+        }
+return false;
+        }
 
     //starts tile counting animation, stops and generates random tile step, renders arrows to move depending on player position...
-    public void startTileCounter() {
-        tilesLabel.setText(Integer.toString(tilesCounter));
+    public static void startTileCounter() {
+        tilesLabelStatic.setText(Integer.toString(tilesCounter));
 
         // Create a Timeline to change the label's text every 100ms
         Duration duration = Duration.millis(100);
@@ -308,7 +409,7 @@ public class HelloController implements Serializable {
             }
 
             tilesTransition.play();
-            tilesLabel.setText("Distance to move: " + Integer.toString(tilesCounter) + " tiles");
+            tilesLabelStatic.setText("Distance to move: " + Integer.toString(tilesCounter) + " tiles");
         });
         Timeline timeline = new Timeline(keyFrame);
         timeline.setCycleCount(Timeline.INDEFINITE);
@@ -328,7 +429,7 @@ public class HelloController implements Serializable {
             Platform.runLater(new Runnable() {
                 @Override
                 public void run() {
-                    tilesLabel.setText((gameState.getSteps() == 1) ? "Distance to move: " + Integer.toString(gameState.getSteps()) + " tile" : "Distance to move: " + Integer.toString(gameState.getSteps()) + " tiles");
+                    tilesLabelStatic.setText((gameState.getSteps() == 1) ? "Distance to move: " + Integer.toString(gameState.getSteps()) + " tile" : "Distance to move: " + Integer.toString(gameState.getSteps()) + " tiles");
                     System.out.println(gameState.getSteps());
 
                     switch (gameState.getSteps()) {
@@ -359,28 +460,28 @@ public class HelloController implements Serializable {
                     switch (gameState.getCurrentPlayer()) {
                         case 1:
                             if (isPlayer1AllLeft && isPlayer1AllRight) {
-                                rightArrow.setVisible(true);
-                                leftArrow.setVisible(true);
+                                rightArrowStatic.setVisible(true);
+                                leftArrowStatic.setVisible(true);
 
                             } else if (isPlayer1AllLeft && !isPlayer1AllRight) {
-                                rightArrow.setVisible(true);
+                                rightArrowStatic.setVisible(true);
                             } else if (!isPlayer1AllLeft && isPlayer1AllRight) {
-                                leftArrow.setVisible(true);
+                                leftArrowStatic.setVisible(true);
                             } else {
-                                leftArrow.setVisible(true);
-                                rightArrow.setVisible(true);
+                                leftArrowStatic.setVisible(true);
+                                rightArrowStatic.setVisible(true);
                             }
                         case 2:
                             if (isPlayer2AllLeft && isPlayer2AllRight) {
-                                rightArrow.setVisible(true);
-                                leftArrow.setVisible(true);
+                                rightArrowStatic.setVisible(true);
+                                leftArrowStatic.setVisible(true);
                             } else if (isPlayer2AllLeft && !isPlayer2AllRight) {
-                                rightArrow.setVisible(true);
+                                rightArrowStatic.setVisible(true);
                             } else if (!isPlayer2AllLeft && isPlayer2AllRight) {
-                                leftArrow.setVisible(true);
+                                leftArrowStatic.setVisible(true);
                             } else {
-                                leftArrow.setVisible(true);
-                                rightArrow.setVisible(true);
+                                leftArrowStatic.setVisible(true);
+                                rightArrowStatic.setVisible(true);
                             }
                     }
 
@@ -423,9 +524,33 @@ FileUtilz.saveGameToFile(gameState);
         player1CardStatic.setLayoutX(gameState.getPlayer1CardLayoutX());
         player2CardStatic.setLayoutX(gameState.getPlayer2CardLayoutX());
 
+        startPlayerFlow();
+    }
 
+    public void sendMsg() throws RemoteException {
+        String msg= msgField.getText();
+        msgService.sendMsg(HelloApplication.activePlayer+": "+msg);
 
-        System.out.println(gameState.getCurrentPlayer());
+    }
+
+    public void chatListener() throws RemoteException {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        List<String> chatHistory=msgService.getAllMsgs();
+        for (String messaj : chatHistory) {
+            stringBuilder.append(messaj).append("\n");
+        }
+
+        this.chatArea.setText(stringBuilder.toString());
+    }
+
+    public void connectToChatService(){
+        try {
+            Registry registry = LocateRegistry.getRegistry(NetworkConfig.HOST, NetworkConfig.RMI_PORT);
+            msgService = (InGameChatService) registry.lookup(InGameChatService.CHAT_OBJECT_NAME);
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+        }
     }
 
 }
