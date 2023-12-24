@@ -12,8 +12,6 @@ import javafx.stage.Stage;
 import me.projects.baldur.betrayal_at_baldurs_gate.InGameChat.InGameChatImpl;
 import me.projects.baldur.betrayal_at_baldurs_gate.InGameChat.InGameChatService;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.*;
-import me.projects.baldur.betrayal_at_baldurs_gate.rmi.RemoteService;
-import me.projects.baldur.betrayal_at_baldurs_gate.rmi.RemoteServiceImpl;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -44,7 +42,7 @@ public class HelloApplication extends Application {
         Scene scene = new Scene(root, 1200.0, 750.0);
 
         //set stage...
-        stage.setTitle("Hello!");
+        stage.setTitle("Betrayal at Baldur's Gate");
         stage.setScene(scene);
         stage.show();
 
@@ -58,23 +56,20 @@ public class HelloApplication extends Application {
 
         activePlayer = args[0];
 
-
         if (activePlayer.equals(Player.PLAYER1.name())) {
-            startChatService();
-            System.out.println("CALIENTE");
-            listenToRequests(NetworkConfig.PLAYER1_PORT);
+            startChatServer();
+            listenToRequests(ConfigurationReader.getInstance().readIntegerValueForKey(ConfigurationKey.PLAYER1_PORT));
 
         }
         if (activePlayer.equals(Player.PLAYER2.name())) {
-            System.out.println("SERVERANGE");
-            listenToRequests(NetworkConfig.PLAYER2_PORT);
+            listenToRequests(ConfigurationReader.getInstance().readIntegerValueForKey(ConfigurationKey.PLAYER2_PORT));
 
         }
     }
 
     public static void sendToPlayer1(State player2state) {
         try {
-            Socket player1socket = new Socket(NetworkConfig.HOST, NetworkConfig.PLAYER1_PORT);
+            Socket player1socket = new Socket(ConfigurationReader.getInstance().readStringValueForKey(ConfigurationKey.HOST), ConfigurationReader.getInstance().readIntegerValueForKey(ConfigurationKey.PLAYER1_PORT));
 
             ObjectOutputStream player1output = new ObjectOutputStream(player1socket.getOutputStream());
 
@@ -88,7 +83,7 @@ public class HelloApplication extends Application {
 
     public static void sendToPlayer2(State player1state) {
         try {
-            Socket player2socket = new Socket(NetworkConfig.HOST, NetworkConfig.PLAYER2_PORT);
+            Socket player2socket = new Socket(ConfigurationReader.getInstance().readStringValueForKey(ConfigurationKey.HOST), ConfigurationReader.getInstance().readIntegerValueForKey(ConfigurationKey.PLAYER2_PORT));
 
             ObjectOutputStream player2output = new ObjectOutputStream(player2socket.getOutputStream());
 
@@ -102,16 +97,13 @@ public class HelloApplication extends Application {
     private static void listenToRequests(int port) throws IOException {
         ServerSocket socket = new ServerSocket(port);
 
-        System.out.println(socket.getLocalPort());
-
         while (true) {
             try (Socket clientSocket = socket.accept();
                  ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream())) {
 
-                State receivedData = (State) in.readObject();
-                System.out.println("Received state from " + clientSocket.getLocalPort() + receivedData);
+                State receivedState = (State) in.readObject();
                 Platform.runLater(() -> {
-                    HelloController.refreshGame(receivedData);
+                    HelloController.refreshGame(receivedState);
                     HelloController.isItHauntTime();
                 });
 
@@ -123,10 +115,14 @@ public class HelloApplication extends Application {
         }
     }
 
-    private static void startChatService() throws RemoteException {
-        Registry registry = LocateRegistry.createRegistry(NetworkConfig.RMI_PORT);
+    private static void startChatServer() throws RemoteException {
+        Registry registry =
+                LocateRegistry.createRegistry(ConfigurationReader.getInstance()
+                        .readIntegerValueForKey(ConfigurationKey.RMI_PORT));
         msgService = new InGameChatImpl();
-        InGameChatService skeleton = (InGameChatService) UnicastRemoteObject.exportObject(msgService, NetworkConfig.RANDOM_PORT_HINT);
+        InGameChatService skeleton =
+                (InGameChatService) UnicastRemoteObject.exportObject(msgService,ConfigurationReader.getInstance()
+                        .readIntegerValueForKey(ConfigurationKey.RANDOM_PORT_HINT));
         registry.rebind(InGameChatService.CHAT_OBJECT_NAME, skeleton);
         System.out.println("Chat object registered?");
     }

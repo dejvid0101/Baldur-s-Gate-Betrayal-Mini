@@ -181,11 +181,6 @@ public class HelloController implements Serializable {
                 setPlayersToLastPosition();
                 startPlayerFlow();
                 updateOtherPlayer();
-                try {
-                    chatListener();
-                } catch (RemoteException e) {
-                    throw new RuntimeException(e);
-                }
             });
 
         }
@@ -246,13 +241,13 @@ public class HelloController implements Serializable {
     }
 
     private static void updateOtherPlayer() {
-        if (HelloApplication.activePlayer.trim().equals(NetworkConfig.PLAYER2))
+        if (HelloApplication.activePlayer.trim().equals(ConfigurationReader.getInstance().readStringValueForKey(ConfigurationKey.PLAYER2)))
         {
             HelloApplication.sendToPlayer1(gameState);
             System.out.println(gameState);
         }
 
-        if (HelloApplication.activePlayer.trim().equals(NetworkConfig.PLAYER1))
+        if (HelloApplication.activePlayer.trim().equals(ConfigurationReader.getInstance().readStringValueForKey(ConfigurationKey.PLAYER1)))
         {
             HelloApplication.sendToPlayer2(gameState);
             System.out.println(gameState);
@@ -302,13 +297,13 @@ public class HelloController implements Serializable {
 
     public static void startPlayerFlow() {
         if(isItHauntTime()) return;
-if(HelloApplication.activePlayer.equals(NetworkConfig.PLAYER1)) if(gameState.getCurrentPlayer()==2) {
+if(HelloApplication.activePlayer.equals(ConfigurationReader.getInstance().readStringValueForKey(ConfigurationKey.PLAYER1))) if(gameState.getCurrentPlayer()==2) {
     leftArrowStatic.setVisible(false);
     rightArrowStatic.setVisible(false);
     return;
 }
 
-        if(HelloApplication.activePlayer.equals(NetworkConfig.PLAYER2)) if(gameState.getCurrentPlayer()==1) {
+        if(HelloApplication.activePlayer.equals(ConfigurationReader.getInstance().readStringValueForKey(ConfigurationKey.PLAYER2))) if(gameState.getCurrentPlayer()==1) {
             leftArrowStatic.setVisible(false);
             rightArrowStatic.setVisible(false);
             return;
@@ -350,7 +345,6 @@ if(HelloApplication.activePlayer.equals(NetworkConfig.PLAYER1)) if(gameState.get
 
     //if haunt time, start haunt animation and set flag, winner decided here
     public static boolean isItHauntTime() {
-
 
         gameState.increaseMovesSinceStart();
 
@@ -546,7 +540,7 @@ FileUtilz.saveGameToFile(gameState);
 
     public void connectToChatService(){
         try {
-            Registry registry = LocateRegistry.getRegistry(NetworkConfig.HOST, NetworkConfig.RMI_PORT);
+            Registry registry = LocateRegistry.getRegistry(ConfigurationReader.getInstance().readStringValueForKey(ConfigurationKey.HOST), ConfigurationReader.getInstance().readIntegerValueForKey(ConfigurationKey.RMI_PORT));
             msgService = (InGameChatService) registry.lookup(InGameChatService.CHAT_OBJECT_NAME);
         } catch (RemoteException | NotBoundException e) {
             e.printStackTrace();
