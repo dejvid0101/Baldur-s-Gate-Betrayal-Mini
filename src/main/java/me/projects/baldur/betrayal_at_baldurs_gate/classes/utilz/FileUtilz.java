@@ -1,4 +1,6 @@
-package me.projects.baldur.betrayal_at_baldurs_gate.classes;
+package me.projects.baldur.betrayal_at_baldurs_gate.classes.utilz;
+
+import me.projects.baldur.betrayal_at_baldurs_gate.classes.State;
 
 import java.io.*;
 import java.util.ArrayList;

@@ -5,16 +5,15 @@ import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Polygon;
 import javafx.util.Duration;
 import me.projects.baldur.betrayal_at_baldurs_gate.InGameChat.InGameChatService;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.*;
+import me.projects.baldur.betrayal_at_baldurs_gate.classes.utilz.FileUtilz;
+import me.projects.baldur.betrayal_at_baldurs_gate.classes.utilz.XmlUtilz;
 
 import java.io.*;
 import java.rmi.NotBoundException;
@@ -23,8 +22,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class HelloController implements Serializable {
 
@@ -84,6 +83,10 @@ public class HelloController implements Serializable {
     @FXML
 
     private MenuItem saveGameBar;
+
+    @FXML
+
+    private MenuItem replayGameBar;
 
     public static Pane player1CardStatic;
 
@@ -165,10 +168,13 @@ public class HelloController implements Serializable {
         if (newGameBar != null) {
 
             newGameBar.setOnAction(actionEvent -> {
+                //replayExecutor.shutdown();
                 refreshState();
                 setPlayersToLastPosition();
                 startPlayerFlow();
                 updateOtherPlayer();
+
+                XmlUtilz.clearReplayFile();
                     }
             );
 
@@ -177,18 +183,35 @@ public class HelloController implements Serializable {
         if (loadGameBar != null) {
 
             loadGameBar.setOnAction(actionEvent -> {
+                //replayExecutor.shutdown();
                 loadGame();
                 setPlayersToLastPosition();
                 startPlayerFlow();
                 updateOtherPlayer();
+
+                XmlUtilz.clearReplayFile();
             });
 
         }
 
         if (saveGameBar != null) {
 
+
             saveGameBar.setOnAction(actionEvent -> {
                 saveGame();
+
+            });
+
+        }
+
+        if (replayGameBar != null) {
+
+
+            replayGameBar.setOnAction(actionEvent -> {
+
+System.out.println(XmlUtilz.readAllGameMoves());
+
+startReplay(XmlUtilz.readAllGameMoves());
 
             });
 
@@ -238,6 +261,53 @@ public class HelloController implements Serializable {
             }
 
         );
+
+    }
+
+    private void startReplay(List<State> movesLikeJagger) {
+        gameStatic.setVisible(true);
+        gameStatic.setTranslateY(-250);
+        initialScreenStatic.setVisible(false);
+
+        ScheduledExecutorService replayExecutor = Executors.newSingleThreadScheduledExecutor();
+
+        final int[] counter = {0};
+
+        // Define the block of code to execute
+        Runnable codeBlock = () -> {
+
+            if(movesLikeJagger.size()> counter[0]) {
+                player1Card.setLayoutX(movesLikeJagger.get(counter[0]).getPlayer1CardLayoutX());
+                player2Card.setLayoutX(movesLikeJagger.get(counter[0]).getPlayer2CardLayoutX());
+
+                if(movesLikeJagger.size()> counter[0]) {
+
+                    if (movesLikeJagger.get(counter[0]).getMovesSinceStart() > 9) {
+                        hauntTransition.play();
+                Platform.runLater(()->{
+
+
+                                    if (gameState.getPlayer1CardLayoutX() <= 750 && gameState.getPlayer1CardLayoutX() >= 500) {
+                                        hauntLabelStatic.setText("Player 1 wins");
+                                    } else if (gameState.getPlayer2CardLayoutX() <= 750 && gameState.getPlayer2CardLayoutX() >= 500) {
+                                        hauntLabelStatic.setText("Player 2 wins");
+
+                                    } else {
+                                        hauntLabelStatic.setText("It's a draw");
+                                    }
+
+                });
+                    }
+        }
+
+            }
+
+            counter[0]++;
+
+        };
+
+        // Schedule the code to execute every two seconds
+        replayExecutor.scheduleAtFixedRate(codeBlock, 0, 2, TimeUnit.SECONDS);
     }
 
     private static void updateOtherPlayer() {
@@ -272,6 +342,10 @@ public class HelloController implements Serializable {
         if (gameState.getCurrentPlayer() == 1) gameState.setCurrentPlayer(2);
         else gameState.setCurrentPlayer(1);
 
+        XmlUtilz.saveGameMove(gameState);
+
+        gameState.increaseMovesSinceStart();
+
         updateOtherPlayer();
 
         startPlayerFlow();
@@ -289,10 +363,14 @@ public class HelloController implements Serializable {
 
         if (gameState.getCurrentPlayer() == 1) gameState.setCurrentPlayer(2);
         else gameState.setCurrentPlayer(1);
+
+        XmlUtilz.saveGameMove(gameState);
+
+        gameState.increaseMovesSinceStart();
+
         updateOtherPlayer();
 
         startPlayerFlow();
-
     }
 
     public static void startPlayerFlow() {
@@ -345,8 +423,6 @@ if(HelloApplication.activePlayer.equals(ConfigurationReader.getInstance().readSt
 
     //if haunt time, start haunt animation and set flag, winner decided here
     public static boolean isItHauntTime() {
-
-        gameState.increaseMovesSinceStart();
 
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 

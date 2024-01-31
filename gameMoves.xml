@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<gameMoves>
+    <gameMove>
+        <player1CardLayoutX>750.00</player1CardLayoutX>
+        <player2CardLayoutX>250.00</player2CardLayoutX>
+        <currentPlayer>1</currentPlayer>
+        <movesSinceStart>4</movesSinceStart>
+    </gameMove>
+    <gameMove>
+        <player1CardLayoutX>1250.00</player1CardLayoutX>
+        <player2CardLayoutX>250.00</player2CardLayoutX>
+        <currentPlayer>2</currentPlayer>
+        <movesSinceStart>5</movesSinceStart>
+    </gameMove>
+    <gameMove>
+        <player1CardLayoutX>1250.00</player1CardLayoutX>
+        <player2CardLayoutX>500.00</player2CardLayoutX>
+        <currentPlayer>1</currentPlayer>
+        <movesSinceStart>6</movesSinceStart>
+    </gameMove>
+    <gameMove>
+        <player1CardLayoutX>750.00</player1CardLayoutX>
+        <player2CardLayoutX>500.00</player2CardLayoutX>
+        <currentPlayer>2</currentPlayer>
+        <movesSinceStart>7</movesSinceStart>
+    </gameMove>
+    <gameMove>
+        <player1CardLayoutX>750.00</player1CardLayoutX>
+        <player2CardLayoutX>250.00</player2CardLayoutX>
+        <currentPlayer>1</currentPlayer>
+        <movesSinceStart>8</movesSinceStart>
+    </gameMove>
+    <gameMove>
+        <player1CardLayoutX>250.00</player1CardLayoutX>
+        <player2CardLayoutX>250.00</player2CardLayoutX>
+        <currentPlayer>2</currentPlayer>
+        <movesSinceStart>9</movesSinceStart>
+    </gameMove>
+    <gameMove>
+        <player1CardLayoutX>250.00</player1CardLayoutX>
+        <player2CardLayoutX>500.00</player2CardLayoutX>
+        <currentPlayer>1</currentPlayer>
+        <movesSinceStart>10</movesSinceStart>
+    </gameMove>
+</gameMoves>

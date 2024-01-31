@@ -5,19 +5,15 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Polygon;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import me.projects.baldur.betrayal_at_baldurs_gate.InGameChat.InGameChatImpl;
 import me.projects.baldur.betrayal_at_baldurs_gate.InGameChat.InGameChatService;
 import me.projects.baldur.betrayal_at_baldurs_gate.classes.*;
+import me.projects.baldur.betrayal_at_baldurs_gate.classes.utilz.ClassInfoUtilz;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -39,7 +35,7 @@ public class HelloApplication extends Application {
         HelloController gameController = fxmlLoader.getController();
 
         //after data has been prepared, init scene and set width/height
-        Scene scene = new Scene(root, 1200.0, 750.0);
+        Scene scene = new Scene(root, 1200.0, 775.0);
 
         //set stage...
         stage.setTitle("Betrayal at Baldur's Gate");

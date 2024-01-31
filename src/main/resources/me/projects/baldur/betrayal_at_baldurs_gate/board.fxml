@@ -25,6 +25,7 @@
                     <MenuItem fx:id="newGameBar" text="New game" />
                     <MenuItem fx:id="loadGameBar" text="Load game" />
                     <MenuItem fx:id="saveGameBar" text="Save game" />
+                    <MenuItem fx:id="replayGameBar" text="Replay game" />
                 </items>
             </Menu>
         </menus>
@@ -55,7 +56,7 @@
 
     <VBox fx:id="game" alignment="CENTER" prefWidth="1900" visible="false">
         <children>
-            <Label fx:id="tilesLabel" text="fefe" />
+            <Label fx:id="tilesLabel" text="" />
             <HBox maxWidth="200" spacing="20" translateX="40">
                 <Polygon fx:id="leftArrow" points="30, 15, 10, 15, 10, 20, 0, 10, 10, 0, 10, 5, 30, 5" stroke="black" strokeWidth="10" visible="false" />
 

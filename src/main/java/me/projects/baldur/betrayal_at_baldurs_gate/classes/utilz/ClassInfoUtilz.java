@@ -1,4 +1,4 @@
-package me.projects.baldur.betrayal_at_baldurs_gate.classes;
+package me.projects.baldur.betrayal_at_baldurs_gate.classes.utilz;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
